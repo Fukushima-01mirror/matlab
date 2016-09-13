@@ -1,0 +1,53 @@
+function[dataGroup] = groupingData2013(dataGroup,excel)
+%input  obj ←　dataGroup
+
+% データグループ分け
+    for i=1: length(dataGroup)
+        dataGroup(i,1).data= zeros(1,1);
+        eval(['j' num2str(i) '=1;']);
+    end
+    [excel.num, excel.txt, excel.raw] = xlsread( readExcelFile );
+    for i = 1: length(excel.num)
+        dataFileName = char( strtok( excel.txt(i+1,1), '-' ) );
+        load( [ cd(), '\vars\', dataFileName, '.mat' ] );
+
+        %dataGroupソート条件
+        if ~isempty(strfind( char( excel.txt(i+1,1) ) , 'sin')) ...         %sin運動
+                && excel.num(i,2)-excel.num(i,1)==2500 ...
+                && excel.num(i,5)< 0.075                         %誤差が小　
+            suffix = 1;
+            [ dataGroup(suffix,1).data ] = Rhythm.storeDataGroup(dataGroup(suffix,1).data , data.player1, excel.num(i,1), excel.num(i,2), j' num2str(suffix) ');
+            eval(['[dataGroup' num2str(suffix) '] = Rhythm.storeTaskData(dataGroup'...
+                num2str(suffix) ', data.task, excel.num(i,1), excel.num(i,2));']);
+            eval(['[dataGroup' num2str(suffix) '] = Rhythm.storeDataGroup(dataGroup'...
+                num2str(suffix) ', data.player1, excel.num(i,1), excel.num(i,2), j' num2str(suffix) ');']);
+            eval(['[dataGroup' num2str(suffix) '] = Rhythm.storeTaskData(dataGroup'...
+                num2str(suffix) ', data.task, excel.num(i,1), excel.num(i,2));']);
+            eval(['j' num2str(suffix) '=j' num2str(suffix) '+1;']);
+        end    
+        %dataGroupソート条件
+        if ~isempty(strfind( char( excel.txt(i+1,1) ) , '0.16')) ...         %等速０．１６
+                && excel.num(i,2)-excel.num(i,1)==2500 ...
+                && excel.num(i,5)< 0.075                         %誤差が小　
+            suffix = 2;
+            eval(['[dataGroup' num2str(suffix) '] = Rhythm.storeDataGroup(dataGroup'...
+                num2str(suffix) ', data.player1, excel.num(i,1), excel.num(i,2), j' num2str(suffix) ');']);
+            eval(['[dataGroup' num2str(suffix) '] = Rhythm.storeTaskData(dataGroup'...
+                num2str(suffix) ', data.task, excel.num(i,1), excel.num(i,2));']);
+            eval(['j' num2str(suffix) '=j' num2str(suffix) '+1;']);
+        end
+        %dataGroupソート条件
+        if ~isempty(strfind( char( excel.txt(i+1,1) ) , '0.2')) ...         %等速０．２
+                && excel.num(i,2)-excel.num(i,1)==2000 ...
+                && excel.num(i,5)< 0.075                           %誤差が小　
+            suffix = 3;
+            eval(['[dataGroup' num2str(suffix) '] = Rhythm.storeDataGroup(dataGroup'...
+                num2str(suffix) ', data.player1, excel.num(i,1), excel.num(i,2), j' num2str(suffix) ');']);
+            eval(['[dataGroup' num2str(suffix) '] = Rhythm.storeTaskData(dataGroup'...
+                num2str(suffix) ', data.task, excel.num(i,1), excel.num(i,2));']);
+            eval(['j' num2str(suffix) '=j' num2str(suffix) '+1;']);
+        end    
+
+    end
+
+

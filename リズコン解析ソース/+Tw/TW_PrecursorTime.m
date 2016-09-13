@@ -1,0 +1,204 @@
+function [TimeOutI,PrecursorTimeI,TimeOut,PrecursorTime] = TW_PrecursorTime(X,Y,TimeIn,GraphHandle)
+
+%Xに対するYの先行時間算出関数　20120722
+%引数，X,Y,TimeIn(XおよびYの時間),GraphFlag(頂点チェック用グラフのONOFF)
+%戻り値，TimeOutI(PrecursorTimeIの時間),PrecursorTimeI(線形補完されたPrecursorTime),
+%TimeOut(先行時間の時間),PrecursorTime(先行時間)
+
+sizeTimeIn = size(TimeIn);
+sizeX = size(X);
+sizeY = size(Y);
+
+if sizeTimeIn(1,1)>sizeTimeIn(1,2)
+    TimeIn = TimeIn';
+end
+
+if sizeX(1,1)>sizeX(1,2)
+    X = X';
+end
+
+if sizeY(1,1)<sizeY(1,2)
+    Y = Y';
+end
+
+
+dt = (TimeIn(1,end)-TimeIn(1,1))/length(TimeIn);
+
+%フィルタその１（エンコーダおよび力）の作成
+N=1;%フィルタの次数
+Fs=1/dt; %サンプリング周波数
+t=0.02;
+Fc=1/(2*pi*t);
+Wn = Fc/(Fs/2); %カットオフ周波数
+[b,a]= butter(N, Wn);
+
+%Xの変化率を算出
+dX = diff(X);
+vel = dX/dt;
+timeV=TimeIn(1,1:length(TimeIn)-1);
+filtered_vel=filtfilt(b,a,vel);%速度データにフィルタをかける
+
+%Xが極値をとる際の各値の算出
+nMax=0;%極大値カウント
+nMin=0;%極小値カウント
+
+for I=1:(length(timeV)-1)
+    if filtered_vel(1,I)*filtered_vel(1,I+1)<0
+         if filtered_vel(1,I)>0;
+             nMax=nMax+1;
+             Kyoku_timeMax(nMax,1)=timeV(1,I);
+             KyokuMax(nMax,1) = X(1,I);
+         else
+             nMin=nMin+1;
+             Kyoku_timeMin(nMin,1)=timeV(1,I);
+             KyokuMin(nMin,1) = X(1,I);
+         end         
+    end
+end
+
+
+%Yの極値の算出（手の動きの極値の間にある極値を探す）
+for I=1: length(Kyoku_timeMax)+1
+    if 1<I && I<length(Kyoku_timeMax)+1
+        StartIndex = find(Kyoku_timeMax(I-1,1)==TimeIn);
+        EndIndex = find(Kyoku_timeMax(I,1)==TimeIn);
+        [GKyoku_MinA(I,1), GKyoku_timeMinA(I,1),GKyoku_MinAFlag(I,1)] = Tw.TW_MinPeakMin(TimeIn(1,StartIndex:EndIndex)',Y(StartIndex:EndIndex,1));     
+    elseif I == 1
+        StartIndex = 1;%最初スプライン等でデータが吹っ飛ぶので調整
+        EndIndex = find(Kyoku_timeMax(1,1)==TimeIn);
+        [GKyoku_MinA(I,1), GKyoku_timeMinA(I,1),GKyoku_MinAFlag(I,1)] = Tw.TW_MinPeakMin(TimeIn(1,StartIndex:EndIndex)',Y(StartIndex:EndIndex,1));
+    else
+        StartIndex = find(Kyoku_timeMax(I-1,1)==TimeIn);
+        EndIndex = length(TimeIn);
+        [GKyoku_MinA(I,1), GKyoku_timeMinA(I,1),GKyoku_MinAFlag(I,1)] = Tw.TW_MinPeakMin(TimeIn(1,StartIndex:EndIndex)',Y(StartIndex:EndIndex,1));
+    end
+end
+
+for I=1: length(Kyoku_timeMin)+1
+    if 1<I && I<length(Kyoku_timeMin)+1
+        StartIndex = find(Kyoku_timeMin(I-1,1)==TimeIn);
+        EndIndex = find(Kyoku_timeMin(I,1)==TimeIn);
+        [GKyoku_MaxA(I,1), GKyoku_timeMaxA(I,1),GKyoku_MaxAFlag(I,1)] = Tw.TW_MaxPeakMax(TimeIn(1,StartIndex:EndIndex)',Y(StartIndex:EndIndex,1));
+    elseif I == 1
+        StartIndex = 1;%最初スプライン等でデータが吹っ飛ぶので調整
+        EndIndex = find(Kyoku_timeMin(1,1)==TimeIn);
+        [GKyoku_MaxA(I,1), GKyoku_timeMaxA(I,1),GKyoku_MaxAFlag(I,1)] = Tw.TW_MaxPeakMax(TimeIn(1,StartIndex:EndIndex)',Y(StartIndex:EndIndex,1));
+    else
+        StartIndex = find(Kyoku_timeMin(I-1,1)==TimeIn);
+        EndIndex = length(TimeIn);
+        [GKyoku_MaxA(I,1), GKyoku_timeMaxA(I,1),GKyoku_MaxAFlag(I,1)] = Tw.TW_MaxPeakMax(TimeIn(1,StartIndex:EndIndex)',Y(StartIndex:EndIndex,1));
+    end
+end
+%disp( (sum(GKyoku_MaxAFlag) + sum(GKyoku_MinAFlag)) / (length(GKyoku_timeMaxA) + length(GKyoku_timeMinA)))
+
+
+
+
+
+if GraphHandle
+    figure(GraphHandle)
+    subplot(2,1,1)
+    hold on
+    for I=1:length(Kyoku_timeMax)
+        plot([Kyoku_timeMax(I,1),Kyoku_timeMax(I,1)],[-10000,10000],'-','Color',[0.7 0.7 0.7]);
+    end
+    for I=1:length(Kyoku_timeMin)
+        plot([Kyoku_timeMin(I,1),Kyoku_timeMin(I,1)],[-10000,10000],':','Color',[0.5 0.5 0.5]);
+    end
+    plot(TimeIn, X,'Color',[0 0 0],'LineWidth',1.5);
+
+    hold off
+    ylim([min(X)-0.1*abs(min(X)),max(X)+0.1*abs(max(X))]);
+    xlim([TimeIn(1,1),TimeIn(1,end)]);
+    
+    subplot(2,1,2)
+    hold on
+    for I=1:length(Kyoku_timeMax)
+        plot([Kyoku_timeMax(I,1),Kyoku_timeMax(I,1)],[-10000,10000],'-','Color',[0.7 0.7 0.7]);
+    end
+    for I=1:length(Kyoku_timeMin)
+        plot([Kyoku_timeMin(I,1),Kyoku_timeMin(I,1)],[-10000,10000],':','Color',[0.5 0.5 0.5]);
+    end
+    plot(TimeIn, Y,'Color',[0 0 0],'LineWidth',1.5);
+
+
+    plot(GKyoku_timeMaxA, GKyoku_MaxA,'o','Color',[1 0 0],'LineWidth',0.5);
+    plot(GKyoku_timeMinA, GKyoku_MinA,'*','Color',[1 0 0],'LineWidth',0.5);
+
+    hold off
+    ylim([min(GKyoku_MinA)-0.1*abs(min(GKyoku_MinA)),max(GKyoku_MaxA)+0.1*abs(max(GKyoku_MaxA))]);
+    xlim([TimeIn(1,1),TimeIn(1,end)]);
+end
+
+
+%% 重心と手の動きの差を調べるセル
+
+%最初と最後を調整
+if Kyoku_timeMin(1,1)<Kyoku_timeMax(1,1)
+    GKyoku_timeMaxA = GKyoku_timeMaxA(2:end,1);
+    GKyoku_MaxA = GKyoku_MaxA(2:end,1);
+    GKyoku_MaxAFlag = GKyoku_MaxAFlag(2:end,1);
+else
+    GKyoku_timeMinA = GKyoku_timeMinA(2:end,1);
+    GKyoku_MinA = GKyoku_MinA(2:end,1);
+    GKyoku_MinAFlag = GKyoku_MinAFlag(2:end,1);
+end
+
+if Kyoku_timeMax(end,1)<Kyoku_timeMin(end,1)
+    GKyoku_timeMaxA = GKyoku_timeMaxA(1:(end-1),1);
+    GKyoku_MaxA = GKyoku_MaxA(1:(end-1),1);
+    GKyoku_MaxAFlag = GKyoku_MaxAFlag(1:(end-1),1);
+else
+    GKyoku_timeMinA = GKyoku_timeMinA(1:(end-1),1);
+    GKyoku_MinA = GKyoku_MinA(1:(end-1),1);
+    GKyoku_MinAFlag = GKyoku_MinAFlag(1:(end-1),1);
+end
+
+
+%%
+
+GapMaxA = Kyoku_timeMax - GKyoku_timeMaxA;
+GapMinA = Kyoku_timeMin - GKyoku_timeMinA;
+
+
+%重心ピークが定義できない箇所をカット
+GapMaxA = GapMaxA(GKyoku_MaxAFlag == 0);
+GKyoku_timeMaxA = GKyoku_timeMaxA(GKyoku_MaxAFlag == 0); 
+GaptimeMaxA = Kyoku_timeMax(GKyoku_MaxAFlag == 0);
+
+GapMinA = GapMinA(GKyoku_MinAFlag == 0);
+GKyoku_timeMinA = GKyoku_timeMinA(GKyoku_MinAFlag == 0); 
+GaptimeMinA = Kyoku_timeMin(GKyoku_MinAFlag == 0);
+
+%ズレ時間の定義
+pre_GaptimeA = [GaptimeMaxA;GaptimeMinA];
+[GaptimeA, IndexGAT] = sort(pre_GaptimeA);
+
+preGapA = [GapMaxA;GapMinA];
+
+for I=1:length(IndexGAT)
+	GapA(I,1) =  preGapA(IndexGAT(I,1),1);
+end
+
+
+%%
+%以下
+pre_Kyoku_time = [Kyoku_timeMax;Kyoku_timeMin];
+[Kyoku_time, IndexKT] = sort(pre_Kyoku_time);
+time_Gap_s = Kyoku_time(1,1):dt:Kyoku_time(end,1);
+
+%線形補間
+GapA_s=interp1(GaptimeA(:,1),GapA(:,1),time_Gap_s);
+
+
+%% ピークを算出できない割合の算出
+
+NotFoundGMaxANum = sum(GKyoku_MaxAFlag);
+NotFoundGMinANum = sum(GKyoku_MinAFlag);
+NotFoundGANum = NotFoundGMaxANum +NotFoundGMinANum; 
+
+TimeOut = GaptimeA;
+PrecursorTime = GapA;
+TimeOutI = time_Gap_s;
+PrecursorTimeI = GapA_s;
+

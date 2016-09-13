@@ -1,0 +1,20 @@
+function[pks, locs] = findpeaksPulse(t,Pul)
+
+%Šp“x·•ª‚ª0‚Ì‚ğœ‚­
+a=diff(Pul);
+difNonZero = (a ~= 0);
+n_difNonZero = length( difNonZero );
+
+Pul_rmDouble = Pul(difNonZero);
+t = t';
+t_rmDouble = t(difNonZero);
+
+if  n_difNonZero < 4 && length(Pul_rmDouble) =
+    pks =0; locs = 0;
+else
+    [pks,n_locs] = findpeaks(Pul_rmDouble);
+    if isempty(pks)
+        pks = max(Pul);
+    end
+    locs = t_rmDouble(n_locs);
+end

@@ -1,0 +1,13 @@
+function[xf] = BPfilter_func(x)
+kPath = char( strcat(cd, '\+Rhythm\BPFkeisuu_20130509.txt'));
+k = csvread(kPath);
+t_delay = length(k);
+% y = filter(k,1,x);
+y = zeros(length(x),1);
+for n = length(k):length(x)
+    for N= 1:length(k)
+        y(n) = y(n) + k(N) * x(n-N+1);
+    end
+end
+xf = vertcat( zeros(t_delay,1) , y(1:length(y)-t_delay));
+ 

@@ -1,0 +1,3 @@
+function saveGraphWithName(dir, name)
+    set(gcf, 'Name', name);
+end

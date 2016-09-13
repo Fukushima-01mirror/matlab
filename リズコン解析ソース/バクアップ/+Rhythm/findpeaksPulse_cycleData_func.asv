@@ -1,0 +1,11 @@
+function[pks, locs] = findpeaksPulse(Pul)
+
+errors = (diff(Pul) ~= 0);
+t = 1:length(Pul);
+% n_errors = sum(errors);
+Pul_rmDouble = Pul(errors);
+t = t';
+t1 = t(errors);
+figure();
+plot(t1,ans1);
+[pks,locs] = findpeaks( ans1);

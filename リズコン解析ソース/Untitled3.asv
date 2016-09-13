@@ -1,0 +1,30 @@
+Time_zc = zcData(:,1);
+Y_zc = zcData(:,2);
+dT_zc = zcData(:,3);
+dA_zc = zcData(:,4);
+cluster = zcData(:,7);
+
+%%           主成分回帰分析
+            bFig =1 ;
+            [k1 , k2, X1, fitParam_X1Y, fitLineR_X1Y] = Rhythm.PCA_regress(dT_zc , dA_zc , Y_zc , bFig) ;
+            
+            %%
+            MonitorSize = [ 0, 0, 400, 800];
+            set(gcf, 'Position', MonitorSize);
+            if ~isempty(strfind( char(obj.config.examType) , '剣道対戦'))
+                obj.saveGraphWithName( [ num2str( obj.data.splitTimeInfo.index ) '_' obj.data.splitTimeInfo.state '_主成分回帰分析']);
+            else
+                obj.saveGraphWithName('_主成分回帰分析');
+            end
+            
+%%           各データの回帰直線との距離
+             [vector_HP , distError , distMean] = Rhythm.PCA_regDist(dT_zc , dA_zc , Y_zc , bFig );
+
+%%
+            if ~isempty(strfind( char(obj.config.examType) , '剣道対戦'))
+                obj.saveGraphWithName( [ num2str( obj.data.splitTimeInfo.index ) '_' obj.data.splitTimeInfo.state '_回帰直線からの距離']);
+            else
+                obj.saveGraphWithName('_回帰直線からの距離');
+            end
+            
+            

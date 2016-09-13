@@ -1,0 +1,57 @@
+classdef AdBoard < Models.DataAbstruct
+    %Device このクラスの概要をここに記述
+    %   詳細説明をここに記述
+
+    properties
+        rightTop
+        rightBottom
+        leftTop
+        leftBottom
+        width
+        height
+    end
+
+    methods
+        function obj = AdBoard()
+            
+            propertyNames = { ...
+                'time' ...
+                'rightTop' ...
+                'rightBottom' ...
+                'leftTop' ...
+                'leftBottom' ...
+            };
+            obj = obj@Models.DataAbstruct(propertyNames);
+            
+        end
+
+        
+        
+        function g = weight(obj)
+            data = obj.matrix();
+            g = sum(data(:,2:5),2);
+        end
+        
+        function g = gravityCenter(obj)
+            % leftHandBoradWidth = 139;
+            % leftHandBoradHeight = 228;
+            % wiiBoadWidth = 430;
+            % wiiBoadHeight = 240;
+            
+            weight = obj.weight();
+            
+            g.x = ((obj.rightTop + obj.rightBottom) - (obj.leftTop + obj.leftBottom)) ./ weight * (obj.width/2);
+            g.y = ((obj.rightTop + obj.leftTop) - (obj.rightBottom + obj.leftBottom)) ./ weight * (obj.height/2);
+            
+        end
+        
+        function supplement(obj, index)
+            posData = [ 4 2 3; ...
+                        3 1 4; ...
+                        2 1 4; ...
+                        1 2 3];
+            obj.setData(index, obj.getData() );
+        end
+
+    end
+end

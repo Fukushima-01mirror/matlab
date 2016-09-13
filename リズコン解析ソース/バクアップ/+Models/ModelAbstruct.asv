@@ -1,0 +1,28 @@
+classdef ModelAbstruct < handle
+
+    properties
+        propertyNames
+    end
+
+    methods
+        function obj = ModelAbstruct(propertyNames)
+            obj.propertyNames = propertyNames;
+        end
+
+        function data = getData(obj,index)      %obj‚Ìindex‚Ì’l‚ðŽæ“¾
+            exp = char(strcat('data = obj.',obj.propertyNames(index),';' ));
+            eval(exp);
+        end
+        
+        function setData(obj,index,data)        %obj‚Ìindex‚Édata‚ð
+            exp = char(strcat('obj.',obj.propertyNames(index),' = data;' ));
+            eval(exp);
+        end
+        
+        
+        function max = length(obj)
+            max = length(obj.propertyNames);
+        end
+        
+    end
+end

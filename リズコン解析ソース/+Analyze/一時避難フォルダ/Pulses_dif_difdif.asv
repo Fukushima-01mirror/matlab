@@ -1,0 +1,68 @@
+classdef Pulses_dif_difdif < Analyze.Base
+    %STANDARDDEVIATION このクラスの概要をここに記述
+    %   詳細説明をここに記述
+
+    properties
+    end
+
+    methods
+        function obj = Pulses_dif_difdif(config,data)
+            obj = obj@Analyze.Base(config,data);
+        end
+
+        function runForAlone(obj,user)
+            
+            %　ゼロクロス間でのピーク回数取得
+            [zeroCrossTimes] = Rhythm.setZeroCrossCount(user.zeroCrossData);
+
+            %　ゼロクロスしている時のインデックス
+            IndexZeroCross = find(zeroCrossTimes(:,1)<2&zeroCrossTimes(:,2)<2);
+            %　ゼロクロスしない時のインデックス
+            IndexNonZeroCross = find( zeroCrossTimes(:,1)>1 | zeroCrossTimes(:,2)>1);
+            
+%             %%      ゼロクロス回避の起こる頻度　エクセルデータ出力  
+%             NonZC_Percent = length( find( zeroCrossTimes(:,1)>1) ) / length(user.zeroCrossData.peak ) *100;
+%             outputTitle = { 'ゼロクロス回避頻度[%]' };
+%             output = num2cell( NonZC_Percent );
+%             obj.outputAllToXls(output , outputTitle);
+            %%
+%%            コントローラ操作描画    
+                r_fig = 3;
+                ax(1) = subplot(r_fig,1,1);
+                plot(   user.time.highSampled,  user.operatePulse.highSampled );         
+                xlabel('時間t ms'); ylabel('コントローラ操作');
+%                 xlim([t_st+20000*(i-1) t_st+20000*i]);
+                if isempty(  findstr( char( obj.config.examType ) , '自由操作'))
+                    ylim([-400 400]);
+                end
+%                 grid on;
+                set(gca,'YTick',[-400:100:400]);
+                
+                ax(2) = subplot(r_fig,1,2);
+                plot(   user.time.highSampled,  user.operatePulse.highSampled );         
+                
+                xlabel('時間t ms'); ylabel('コントローラ操作の微分');
+                
+                ax(3) = subplot(r_fig,1,3);
+                plot(   user.time.highSampled,  user.operatePulse.highSampled );         
+                xlabel('時間t ms'); ylabel('コントローラ操作の2回微分');
+
+
+               
+                linkaxes(ax, 'x');
+%                 if ~isempty(strfind( char(obj.config.examType) , '剣道対戦'))
+%                     obj.saveGraphWithName( [ num2str( obj.data.splitTimeInfo.index ) , num2str(i)] );
+%                 else
+%                     obj.saveGraphWithName( [num2str(i)] );
+%                 end
+                               
+                
+        end
+
+        function runForPair(obj,user1,user2)
+
+            
+        end
+
+    end
+end

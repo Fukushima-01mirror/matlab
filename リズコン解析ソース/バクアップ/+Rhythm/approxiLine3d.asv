@@ -1,0 +1,8 @@
+function [ fitParam, ] = approxiLine2d(x, y )
+    
+
+            fit = polyfit( x ,y  ,1);
+            [R,P] = corrcoef( x , y );
+            fitLineR(1,:) = [R(1,2), P(1,2)]; 
+    
+end

@@ -1,0 +1,45 @@
+function [ output] = Corr3Analysis(x1, x2, y )
+    
+
+    %　周期差とアバタ速さの相関
+    subplot(3,numGroup,i);
+    [ fitParam1, fitLineR1, lineEdgePoint] = Rhythm.approxiLine2d(X1_zc, Y_zc );
+    plot( X1_zc  ,Y_zc,  'Marker','*', 'LineStyle','none','Color', colorData(i,:));
+    hold on
+        plot( X1_nzc  ,Y_nzc,'Marker','o', 'LineStyle','none','Color', colorData(i,:));
+        plot(lineEdgePoint(:,1), lineEdgePoint(:,2), 'k')
+    hold off
+    grid on
+    xlabel('操作波形 周期の差'); ylabel('対数演算前アバタ速さ');
+    xlim([0,600]);         ylim([0 50000]);
+    title({['V =  (' num2str( fitParam1(1) ) ') * dPeriod  + (' num2str(fitParam1(2)) ')']} );
+    
+    %　振幅差とアバタ速さの相関
+    subplot(3,numGroup,numGroup+i);
+    [ fitParam2, fitLineR2, lineEdgePoint] = Rhythm.approxiLine2d(X2_zc, Y_zc );
+    plot( X2_zc  ,Y_zc ,  'Marker','*', 'LineStyle','none','Color', colorData(i,:));
+    hold on
+        plot( X2_nzc  ,Y_nzc,'Marker','o', 'LineStyle','none','Color', colorData(i,:));
+        plot(lineEdgePoint(:,1), lineEdgePoint(:,2), 'k')
+    hold off
+    grid on
+    xlabel('操作波形　振幅の差'); ylabel('対数演算前アバタ速さ');
+    xlim([0,600]);            ylim([0 50000]);
+    title(['V =  (' num2str( fitParam2(1) ) ') * dPeak  + (' num2str(fitParam2(2)) ')']);
+    
+    %　周期差と振幅差の相関
+    subplot(3,numGroup,2*numGroup+i);
+    [ fitParam3, fitLineR3, lineEdgePoint] = Rhythm.approxiLine2d(X1_zc  ,X2_zc );
+    plot( X1_zc  ,X2_zc , 'Marker','*', 'LineStyle','none','Color', colorData(i,:));
+    hold on
+        plot( X2_nzc  ,X1_nzc,'Marker','o', 'LineStyle','none','Color', colorData(i,:));
+        plot(lineEdgePoint(:,1), lineEdgePoint(:,2), 'k')
+    hold off
+    grid on
+    xlabel('操作波形 周期の差');    ylabel('操作波形　振幅の差'); 
+    xlim([0,600]);            ylim([0,600]);
+    title(['V =  (' num2str( fitParam3(1) ) ') * dPeak  + (' num2str(fitParam3(2)) ')']);
+    
+    data =[fitParam1(1) ; fitLineR1(1); fitParam2(1) ; fitLineR2(1); fitParam3(1) ; fitLineR3(1)];
+    output = [ output num2cell(data) ];    
+end

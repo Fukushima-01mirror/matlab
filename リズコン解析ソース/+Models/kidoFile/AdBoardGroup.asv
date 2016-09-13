@@ -1,0 +1,60 @@
+classdef AdBoardGroup < Models.DataGroupAbstruct
+    %Device このクラスの概要をここに記述
+    %   詳細説明をここに記述
+
+    properties
+        leftHand
+        seat
+        foot
+        leftHandPos
+    end
+
+    methods
+        function obj = AdBoardGroup()
+            
+            propertyNames = { ...
+                'leftHand' ...
+                'seat' ...
+                'foot' ...
+            };
+            obj = obj@Models.DataGroupAbstruct(propertyNames);
+        end
+
+        function supplementFor20120910(obj, weight)
+            leftHandWeight = obj.leftHand.rightTop + obj.leftHand.rightBottom + obj.leftHand.leftTop + obj.leftHand.leftBottom ;
+            seatWeight = obj.seat.rightTop + obj.seat.rightBottom + obj.seat.leftTop + obj.seat.leftBottom ;
+            footHandWeight = obj.foot.rightBottom + obj.foot.leftTop + obj.foot.leftBottom ;
+            
+            weightArr = leftHandWeight + seatWeight + footHandWeight;
+            weightArr = weight - weightArr;
+            %obj.seat.rightBottom = weightArr .* seatWeight ./ footHandWeight;
+            %obj.foot.rightTop = weightArr .* footHandWeight ./ seatWeight;
+            obj.foot.rightTop = weightArr;
+        end
+
+        function g = weight(obj)
+            handWeight = obj.leftHand.wiehgt();
+            seatWeight = obj.seat.wiehgt();
+            footWeight = obj.foot.wiehgt();
+            
+            g = handWeight + seatWeight + footWeight;
+        end
+        
+        function pos = bodyGravityCenterFor20120910(obj)
+            handPos = obj.leftHand.gravityCenter();
+            seatPos = obj.seat.gravityCenter();
+            footPos = obj.foot.gravityCenter();
+            
+            handWeight = obj.leftHand.wiehgt();
+            seatWeight = obj.seat.wiehgt();
+            footWeight = obj.foot.wiehgt();
+            
+            weight = obj.weight();
+            
+            pos.x = (footPos.x .* footWeight + seatPos.x .* seatWeight + (handPos.x - obj.leftHandPos) .* handWeight) ./ weight;
+            pos.y = ((footPos.y+350) .* footWeight + seatPos.y .* seatWeight + (handPos.x  obj.leftHandPos) .* handWeight) ./ weight;
+            pos.y = (filtered_weight_data(:,2).*jyusin_y(:,2) + filtered_weight_data(:,3).*(jyusin_y(:,3)+350) + filtered_weight_data(:,1).*(jyusin_y(:,1)+440)) ./ weight;
+        end
+        
+    end
+end

@@ -1,0 +1,10 @@
+function[y_trend, t_series] = getTrend(y, t , t_width)
+%input  obj ←　user.zeroCrossData
+% output    ゼロクロス間ピーク回数
+
+dy = diff(y);
+dy = [0 ; dy];
+
+IndexNonZero = find(dy);
+ y(IndexNonZero)
+

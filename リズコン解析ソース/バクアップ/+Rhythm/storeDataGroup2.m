@@ -1,0 +1,31 @@
+function [ dataGroup ] = storeDataGroup2(dataGroup, obj, stTime, endTime , column)
+%
+
+    timeIndex_LSample = find( obj.player1.time.lowSampled >= stTime...
+                     & obj.player1.time.lowSampled <= endTime ) ;
+    timeIndex_HSample = find( obj.player1.time.highSampled >= stTime...
+                     & obj.player1.time.highSampled <= endTime ) ;
+                 
+    dataGroup.time.highSampled(:,column) = [0:1:endTime-stTime]';
+    dataGroup.avatarVelocity.highSampled(:,column) =  obj.player1.avatarVelocity.highSampled( timeIndex_HSample );
+    dataGroup.avatarPosition.highSampled(:,column) =  obj.player1.avatarPosition.highSampled( timeIndex_HSample );
+    dataGroup.operatePulse.highSampled(:,column) =  obj.player1.operatePulse.highSampled( timeIndex_HSample );
+    
+    dataGroup.taskdata.velocity = obj.task.avatarVelocity;
+    dataGroup.taskdata.position = obj.task.avatarPosition;
+    
+
+    [period_zx, peak_zx] = Rhythm.setZeroCrossPeriodData(obj.player1.zeroCrossData);
+    [zcPeakCount] = Rhythm.setZeroCrossCount(obj.player1.zeroCrossData);
+    zcIndex = find( obj.player1.zeroCrossData.zeroCrossTime >= stTime...
+                     & obj.player1.zeroCrossData.zeroCrossTime <= endTime ) ;
+    dataGroup.zeroCrossData(column,1).time = obj.player1.zeroCrossData.zeroCrossTime(zcIndex);
+    dataGroup.zeroCrossData(column,1).period = period_zx(zcIndex,:);
+    dataGroup.zeroCrossData(column,1).peak = peak_zx(zcIndex,:);
+    dataGroup.zeroCrossData(column,1).avtVelocity = obj.player1.zeroCrossData.avtVelocity(zcIndex);
+    dataGroup.zeroCrossData(column,1).nonlogAvtVelocity ...
+                        = obj.player1.zeroCrossData.nonlogAvtVelocity(zcIndex);
+    dataGroup.zeroCrossData(column,1).zcPeakCount = zcPeakCount(zcIndex,:);
+           
+
+end
